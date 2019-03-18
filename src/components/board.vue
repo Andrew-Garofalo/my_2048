@@ -16,14 +16,14 @@
     </div>
 
     <div v-if="!showHighScores">
-    <div v-for="row in stringifyBoard" class="row">
-      <div v-for="item in row" class="col">{{ item }}</div>
+    <div v-for="(row, index) in stringifyBoard" :key="index" class="row">
+      <div v-for="item in row" :key="item.id" class="col">{{ item }}</div>
     </div>
     </div>
 
     <div v-if="showHighScores">
-      <span v-for="row in highScores" class="score-row">
-      <span v-for="(item, index) in row" class="score-col highscores"> {{ row[index] }}</span>
+      <span v-for="(row, key) in highScores" :key="key" class="score-row">
+      <span v-for="(item, index) in row" :key="index" class="score-col highscores"> {{ row[index] }}</span>
     </span> 
     </div>
   </div>
@@ -39,10 +39,10 @@ export default {
   data () {
     return {
       board: [
-        [{merged:false, value:0},{merged:false, value:0},{merged:false, value:0},{merged:false, value:0}],
-        [{merged:false, value:0},{merged:false, value:0},{merged:false, value:0},{merged:false, value:0}],
-        [{merged:false, value:0},{merged:false, value:0},{merged:false, value:0},{merged:false, value:0}],
-        [{merged:false, value:0},{merged:false, value:0},{merged:false, value:0},{merged:false, value:0}],
+        [{id:0,merged:false, value:0},{id:1,merged:false, value:0},{id:2,merged:false, value:0},{id:3,merged:false, value:0}],
+        [{id:4,merged:false, value:0},{id:5,merged:false, value:0},{id:6,merged:false, value:0},{id:7,merged:false, value:0}],
+        [{id:8,merged:false, value:0},{id:9,merged:false, value:0},{id:10,merged:false, value:0},{id:11,merged:false, value:0}],
+        [{id:12,merged:false, value:0},{id:13,merged:false, value:0},{id:14,merged:false, value:0},{id:15,merged:false, value:0}],
       ],
       highScores: [],
       boardChanged: false,
@@ -100,8 +100,9 @@ export default {
     },
 
     playAgainFn() {
-      let pAgainEntry = document.getElementsByClassName("playAgainInput").value
-      if(pAgainEntry == "No" || pAgainEntry == "n") {}
+      let pAgainEntry = document.getElementsByClassName("playAgainInput")[0].value
+      console.log("pAgainEntry: " + pAgainEntry)
+      if(pAgainEntry.toLowerCase() == "no" || pAgainEntry.toLowerCase() == "n") { return}
       else {
         const this_board = this
         this_board.board= [
