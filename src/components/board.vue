@@ -1,15 +1,18 @@
 <template>
   <div class="board">
-    <div id="score">Score: {{score}}</div>
+    <div v-if="!showHighScores">
+      <div id="score">Score: {{score}}</div>
+    </div>
 
     <div v-show="enterName">
       <label class="nameEntry" for="uName">Enter your name for the high score list:</label>
-      <input v-on:keyup.enter="addHighScore" class="nameBox" type="text" id="uName">
+      <input v-on:keyup.enter="addHighScore" class="nameBox" type="text" id="uName" key="enterName">
     </div>
 
     <div v-show="playAgain">
+      <br><br>
       <label class="playAgainLabel" for="uName">Hope you had fun! Would you like to play again?</label>
-      <input v-on:keyup.enter="playAgainFn" class="playAgainInput" type="text" id="uName">
+      <input v-on:keyup.enter="playAgainFn" class="playAgainInput" type="text" id="uName" key="playAgain">
     </div>
 
     <div v-if="!showHighScores">
@@ -20,7 +23,7 @@
 
     <div v-if="showHighScores">
       <span v-for="row in highScores" class="score-row">
-      <span v-for="(item, index) in row" class="score-col"> {{ row[index] }}</span>
+      <span v-for="(item, index) in row" class="score-col highscores"> {{ row[index] }}</span>
     </span> 
     </div>
   </div>
@@ -48,6 +51,7 @@ export default {
       showHighScores: false,
       enterName: false,
       playAgain: false,
+      enterNameMarker: false,
       dateCreated: new Date().toISOString().slice(0,10)
     }
   },
@@ -60,18 +64,11 @@ export default {
           return item.value
         })
       })
-    },
-    top3 () { 
-      return this.highScores.splice(1, 3) 
-      }
+    }
   },
 
   mounted() {
     const this_board = this
-    this_board.showHighScores = false
-    this_board.enterName = false
-    this_board.highScores = []
-    this_board.dateCreated = new Date().toISOString().slice(0,10)
     this_board.placeTwo()
     this_board.placeTwo()
     document.addEventListener("keyup", this_board.keypress)
@@ -112,14 +109,17 @@ export default {
         [{merged:false, value:0},{merged:false, value:0},{merged:false, value:0},{merged:false, value:0}],
         [{merged:false, value:0},{merged:false, value:0},{merged:false, value:0},{merged:false, value:0}],
         [{merged:false, value:0},{merged:false, value:0},{merged:false, value:0},{merged:false, value:0}],
-        ],
-        this_board.highScores= [],
-        this_board.boardChanged= false,
-        this_board.score= 0,
-        this_board.name= "",
-        this_board.showHighScores= false,
-        this_board.enterName= false,
-        this_board.playAgain= false,
+        ]
+        let newarr = []
+        this_board.highScores = null
+        this_board.highScores = newarr
+        this_board.boardChanged= false
+        this_board.score= 0
+        this_board.name= ""
+        this_board.showHighScores= false
+        this_board.enterName= false
+        this_board.playAgain= false
+        this_board.enterNameMarker = false
         this_board.dateCreated= new Date().toISOString().slice(0,10)
         this_board.placeTwo()
         this_board.placeTwo()
@@ -132,7 +132,6 @@ export default {
       if(event.which == 13) {
         const this_board = this  
 
-        this_board.highScores = []
         this_board.name = "" 
       
         //update user's name
@@ -158,22 +157,19 @@ export default {
 
     getHighScores() {
       const this_board = this
-      
-        // retrieve top 2 high scores
+
+        // retrieve top 3 high scores
         fb.db.collection("high_score").orderBy("score", "desc").limit(3).onSnapshot(
           snapshot => {
-            
             snapshot.forEach(change => {
+              
               let obj = {
                         dateCreated : change.data().date,
                         name : change.data().name,
                         score : change.data().score}
-              this_board.highScores.push(obj)
+               this_board.highScores.push(obj)
             })
       })
-
-      // this_board.highScores.slice(0, 1)
-      console.log(this_board.highScores)
 
       //Show the high scores list and hide the game board
       this_board.showHighScores = true
@@ -238,11 +234,33 @@ export default {
           }
         }
       }
-      //If no tiles can be moved, Game is over
 
-      //loop over  board, check if no zeros exist, hopefully the above code already checks if any
-        //merges can be made. Else, also check if any 2 adjacent squares have same value
-      if(!this_board.boardChanged) { this_board.enterName = true }
+      //If no tiles can be moved, Game is over
+      //Check if any zeros are present or any merges can be made with adjacent squares
+      if(!this_board.boardChanged) {         
+        this_board.enterNameMarker = true 
+
+        for(let x = 0; x < board.length; x++) {
+          for(let y = 0; y < board.length; y++) {
+            if(board[x][y].value == 0) {this_board.enterNameMarker = false}
+            if(x-1 >= 0) {
+              if(board[x][y].value == board[x-1][y].value) {this_board.enterNameMarker = false}
+            }
+            if(x+1 < 4) {
+              if(board[x][y].value == board[x+1][y].value) {this_board.enterNameMarker = false}
+            }
+            if(y-1 >= 0) {
+              if(board[x][y].value == board[x][y-1].value) {this_board.enterNameMarker = false}
+            }
+            if(y+1 < 4) {
+              if(board[x][y].value == board[x][y+1].value) {this_board.enterNameMarker = false}
+            }
+          }
+        }
+        if(this_board.enterNameMarker == true) {
+          this_board.enterName = true
+        }
+      }
     },
 
     moveLeft() {
@@ -284,12 +302,32 @@ export default {
           }
         }
       }
+
       //If no tiles can be moved, Game is over
       if(!this_board.boardChanged) { 
+        this_board.enterNameMarker = true 
 
-        //loop over  board, check if no zeros exist, hopefully the above code already checks if any
-        //merges can be made. Else, also check if any 2 adjacent squares have same value
-        this_board.enterName = true }
+      for(let x = 0; x < board.length; x++) {
+          for(let y = 0; y < board.length; y++) {
+            if(board[x][y].value == 0) {this_board.enterNameMarker = false}
+            if(x-1 >= 0) {
+              if(board[x][y].value == board[x-1][y].value) {this_board.enterNameMarker = false}
+            }
+            if(x+1 < 4) {
+              if(board[x][y].value == board[x+1][y].value) {this_board.enterNameMarker = false}
+            }
+            if(y-1 >= 0) {
+              if(board[x][y].value == board[x][y-1].value) {this_board.enterNameMarker = false}
+            }
+            if(y+1 < 4) {
+              if(board[x][y].value == board[x][y+1].value) {this_board.enterNameMarker = false}
+            }
+          }
+        }
+        if(this_board.enterNameMarker == true) {
+          this_board.enterName = true
+        }
+      }
     },
 
     moveDown() {
@@ -331,11 +369,32 @@ export default {
           }
         }
       }
-      //If no tiles can be moved, Game is over
 
-      //loop over  board, check if no zeros exist, hopefully the above code already checks if any
-        //merges can be made. Else, also check if any 2 adjacent squares have same value
-      if(!this_board.boardChanged) { this_board.enterName = true }
+      //If no tiles can be moved, Game is over
+      if(!this_board.boardChanged) { 
+        this_board.enterNameMarker = true 
+
+      for(let x = 0; x < board.length; x++) {
+          for(let y = 0; y < board.length; y++) {
+            if(board[x][y].value == 0) {this_board.enterNameMarker = false}
+            if(x-1 >= 0) {
+              if(board[x][y].value == board[x-1][y].value) {this_board.enterNameMarker = false}
+            }
+            if(x+1 < 4) {
+              if(board[x][y].value == board[x+1][y].value) {this_board.enterNameMarker = false}
+            }
+            if(y-1 >= 0) {
+              if(board[x][y].value == board[x][y-1].value) {this_board.enterNameMarker = false}
+            }
+            if(y+1 < 4) {
+              if(board[x][y].value == board[x][y+1].value) {this_board.enterNameMarker = false}
+            }
+          }
+        }
+        if(this_board.enterNameMarker == true) {
+          this_board.enterName = true
+        }
+      }
     },
 
     moveUp() {
@@ -379,10 +438,30 @@ export default {
       }
 
       //If no tiles can be moved, Game is over
+      if(!this_board.boardChanged) { 
+        this_board.enterNameMarker = true 
 
-      //loop over  board, check if no zeros exist, hopefully the above code already checks if any
-        //merges can be made. Else, also check if any 2 adjacent squares have same value
-      if(!this_board.boardChanged) { this_board.enterName = true }
+      for(let x = 0; x < board.length; x++) {
+          for(let y = 0; y < board.length; y++) {
+            if(board[x][y].value == 0) {this_board.enterNameMarker = false}
+            if(x-1 >= 0) {
+              if(board[x][y].value == board[x-1][y].value) {this_board.enterNameMarker = false}
+            }
+            if(x+1 < 4) {
+              if(board[x][y].value == board[x+1][y].value) {this_board.enterNameMarker = false}
+            }
+            if(y-1 >= 0) {
+              if(board[x][y].value == board[x][y-1].value) {this_board.enterNameMarker = false}
+            }
+            if(y+1 < 4) {
+              if(board[x][y].value == board[x][y+1].value) {this_board.enterNameMarker = false}
+            }
+          }
+       }
+        if(this_board.enterNameMarker == true) {
+          this_board.enterName = true
+        }
+      }
       
     },
 
@@ -458,6 +537,9 @@ export default {
   font-size: 2em;
   padding-right: 5px;
 }
+input[type=text] {
+  text-align: center;
+}
 .nameBox {
     min-height:2em;
     border: solid;
@@ -472,6 +554,16 @@ export default {
   min-height:2em;
   border: solid;
   border-width: 1px;
+  border-color: black;
+}
+.highscores {
+  width: 7em;
+  height: 3em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: solid;
+  border-width: 5px;
   border-color: black;
 }
 </style>
