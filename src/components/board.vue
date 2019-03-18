@@ -1,48 +1,35 @@
 <template>
   <div class="board">
-    <div v-if="!showHighScores">
-      <div id="score">Score: {{score}}</div>
-    </div>
+    <score :score="score" :showHighScores="showHighScores"></score>
 
-    <div v-show="enterName">
-      <label class="nameEntry" for="uName">Enter your name for the high score list:</label>
-      <input v-on:keyup.enter="addHighScore" class="nameBox" type="text" id="uName" key="enterName">
-    </div>
+    <enterScore :enterName="enterName" v-on:callAddHighScore="addHighScore"></enterScore>
 
-    <div v-show="playAgain">
-      <br><br>
-      <label class="playAgainLabel" for="uName">Hope you had fun! Would you like to play again?</label>
-      <input v-on:keyup.enter="playAgainFn" class="playAgainInput" type="text" id="uName" key="playAgain">
-    </div>
+    <playAgain :playAgain="playAgain" v-on:playAgainFunc="playAgainFn"></playAgain>
 
-    <div v-if="!showHighScores">
-    <div v-for="row in stringifyBoard" class="row">
-      <div v-for="item in row" class="col">{{ item }}</div>
-    </div>
-    </div>
+    <displayBoard :board="board" :showHighScores="showHighScores"></displayBoard>
 
-    <div v-if="showHighScores">
-      <span v-for="row in highScores" class="score-row">
-      <span v-for="(item, index) in row" class="score-col highscores"> {{ row[index] }}</span>
-    </span> 
-    </div>
+    <highScores :highScores="highScores" :showHighScores="showHighScores"></highScores>
   </div>
 </template>
 
 <script>
-// import cell from './cell.vue'
+import highScores from './highScores.vue'
+import score from './score.vue'
+import playAgain from './playAgain.vue'
+import enterScore from './enterScore.vue'
+import displayBoard from './displayBoard.vue'
 const fb = require('../firebaseConfig.js')
 
 export default {
   name: 'board',
-//   components: { cell },
+  components: { highScores, score, playAgain, enterScore, displayBoard },
   data () {
     return {
       board: [
-        [{merged:false, value:0},{merged:false, value:0},{merged:false, value:0},{merged:false, value:0}],
-        [{merged:false, value:0},{merged:false, value:0},{merged:false, value:0},{merged:false, value:0}],
-        [{merged:false, value:0},{merged:false, value:0},{merged:false, value:0},{merged:false, value:0}],
-        [{merged:false, value:0},{merged:false, value:0},{merged:false, value:0},{merged:false, value:0}],
+        [{id:0,merged:false, value:0},{id:1,merged:false, value:0},{id:2,merged:false, value:0},{id:3,merged:false, value:0}],
+        [{id:4,merged:false, value:0},{id:5,merged:false, value:0},{id:6,merged:false, value:0},{id:7,merged:false, value:0}],
+        [{id:8,merged:false, value:0},{id:9,merged:false, value:0},{id:10,merged:false, value:0},{id:11,merged:false, value:0}],
+        [{id:12,merged:false, value:0},{id:13,merged:false, value:0},{id:14,merged:false, value:0},{id:15,merged:false, value:0}],
       ],
       highScores: [],
       boardChanged: false,
@@ -53,17 +40,6 @@ export default {
       playAgain: false,
       enterNameMarker: false,
       dateCreated: new Date().toISOString().slice(0,10)
-    }
-  },
-
-  computed: {
-    stringifyBoard() {
-      const this_board = this
-      return this_board.board.map(row => {
-        return row.map(item => {
-          return item.value
-        })
-      })
     }
   },
 
@@ -100,8 +76,8 @@ export default {
     },
 
     playAgainFn() {
-      let pAgainEntry = document.getElementsByClassName("playAgainInput").value
-      if(pAgainEntry == "No" || pAgainEntry == "n") {}
+      let pAgainEntry = document.getElementsByClassName("playAgainInput")[0].value
+      if(pAgainEntry.toLowerCase() == "no" || pAgainEntry.toLowerCase() == "n") { return}
       else {
         const this_board = this
         this_board.board= [
@@ -483,87 +459,5 @@ export default {
   height: 90vh;
   width: 100vw;
   background-color: #C1ABA6;
-}
-.row {
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-around;
-  font-size: 5em;
-  background-color: #34495e;
-	color: #fff;
-}
-.col {
-  width: 2em;
-  height: 2em;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border: solid;
-  border-width: 5px;
-  border-color: black;
-}
-
-.score-row {
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-around;
-  font-size: 5em;
-  background-color: #34495e;
-	color: #fff;
-  border-collapse: collapse;
-  border-width: 5px;
-  border-color: black;
-}
-.score-col {
-  width: 6em;
-  height: 3em;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border: solid;
-  border-width: 5px;
-  border-color: black;
-}
-
-#score {
-    font-size:5em;
-    border: solid;
-    border-width: 5px;
-    border-color: black;
-    margin-bottom: 2%;
-    padding: 10px;
-}
-.nameEntry {
-  font-size: 2em;
-  padding-right: 5px;
-}
-input[type=text] {
-  text-align: center;
-}
-.nameBox {
-    min-height:2em;
-    border: solid;
-    border-width: 1px;
-    border-color: black;
-}
-.playAgainLabel {
-  font-size: 2em;
-  padding-right: 5px;
-}
-.playAgainInput {
-  min-height:2em;
-  border: solid;
-  border-width: 1px;
-  border-color: black;
-}
-.highscores {
-  width: 7em;
-  height: 3em;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border: solid;
-  border-width: 5px;
-  border-color: black;
 }
 </style>
