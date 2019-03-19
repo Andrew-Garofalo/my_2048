@@ -3,12 +3,12 @@ import 'firebase/firestore'
 
 // firebase init goes here
 const config = {
-    apiKey: "AIzaSyDI2Yk0Sv2FE6jJkjG-kEFxyWTtPuzp8QA",
+    apiKey: "MYAPIKEY",
     authDomain: "andrew-232321.firebaseapp.com",
     databaseURL: "https://andrew-232321.firebaseio.com",
     projectId: "andrew-232321",
     storageBucket: "andrew-232321.appspot.com",
-    messagingSenderId: "217153714690"
+    messagingSenderId: "MESSAGESENDERID"
 }
 firebase.initializeApp(config)
 
